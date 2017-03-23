@@ -1,0 +1,10 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+#wave {
+    display:block;
+    border-bottom: 20px solid darkblue;
+    border-top: 10px solid darkblue;
+}

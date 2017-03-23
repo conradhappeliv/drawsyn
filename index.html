@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DrawSyn</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+    <canvas id="wave"></canvas>
+    <select data-bind="options: midiinputs, optionsText: 'name', optionsValue: 'value', value: selectedInput"></select>
+    <button id="reset">Reset</button>
+    <button id="sin">Sin</button>
+    <button id="tri">Triangle</button>
+    <button id="saw">Saw</button>
+    <button id="square">Square</button>
+
+    <script  type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-debug.js"></script>
+    <script type="text/javascript" src="https://google.github.io/traceur-compiler/bin/traceur.js"></script>
+    <script type="text/javascript" src="https://google.github.io/traceur-compiler/bin/BrowserSystem.js"></script>
+    <script type="text/javascript" src="https://google.github.io/traceur-compiler/src/bootstrap.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
