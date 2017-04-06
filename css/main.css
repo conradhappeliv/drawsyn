@@ -3,8 +3,76 @@
     padding: 0;
 }
 
+button {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+canvas {
+    margin-top: 20px;
+    cursor: crosshair;
+}
+
+.controllabel {
+    text-align: right;
+    margin-right:30px;
+}
+
+.dotrow {
+    line-height:0;
+}
+
+.dot {
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+    display:inline-block;
+    cursor: pointer;
+    margin: 2px;
+}
+
+.dot.on {
+    background-color: blue;
+}
+
+.dot.off {
+    background-color: black;
+}
+
+.dot.active {
+    background-color: green;
+}
+
+.sliders {
+    cursor: pointer;
+    margin-bottom: 11px;
+}
+
+.noUi-horizontal {
+    padding-right: 32px;
+}
+
+.noUi-horizontal .noUi-handle {
+    height:18px;
+    left: -1px;
+    top:-1px;
+    box-shadow: none;
+    background-color:black;
+}
+
+.noUi-horizontal .noUi-origin {
+    right: -32px;
+}
+
+.noUi-horizontal .noUi-handle:before, .noUi-horizontal .noUi-handle:after {
+    height: 5px;
+    top: 5px;
+}
+
 #wave {
     display:block;
-    border-bottom: 20px solid darkblue;
-    border-top: 10px solid darkblue;
+}
+
+#seq {
+    margin: 20px auto;
 }

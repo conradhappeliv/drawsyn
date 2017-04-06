@@ -1,11 +1,9 @@
-import MIDI from 'js/midi.js'
+import CustomWave from 'js/customwave.js'
 
-// vars
+// global vars (sorry)
 let wave_size;
 let width;
 let height;
-
-// consts
 let wave;
 let delta;
 let isMouseDown = false;
@@ -13,34 +11,78 @@ let last_mousex = -1;
 let last_mousey = -1;
 let actx = new (window.AudioContext || window.webkitAudioContext)();
 let process_node = actx.createScriptProcessor(256, 0, 1);
-let cur_phase = 0;
 let cur_freq = 440;
-let cur_vol = 1;
-let cur_notes = [];
-let release = .3;
-let midi = new MIDI(true, onMIDIDevChange);
-let viewmodel = {
-    midiinputs: ko.observableArray(),
-    selectedInput: ko.observable()
-};
+let cur_bpm = 120;
+let cur_attack = .25;
+let cur_release = .25;
+let cur_difference = 60;
+let cur_octave = 4;
+let amt = 12;
+let seqGrid;
+let curCol = 0;
+let playingNotes = [];
+let sinceLastNote = 0;
 
 process_node.onaudioprocess = function(e) {
     let outputBuffer = e.outputBuffer.getChannelData(0);
     let len = outputBuffer.length;
-    let fs = 44100;
+    for(let i = 0; i < len; i++) {
+        outputBuffer[i] = 0;
+    }
 
-    let del = fs/cur_freq;
-    if(cur_vol == 0) {
-        for(let i = 0; i < len; i++) outputBuffer[i] = 0;
-    } else {
-        for(let i = 0; i < len; i++) {
-            outputBuffer[i] = getInterpWavePoint(i / del + cur_phase)*cur_vol;
-            if(cur_notes.length == 0) cur_vol = Math.max(0, cur_vol-(1-release)/fs);
+    let fs = 44100;
+    let sampsPerBeat = fs/(cur_bpm/16); // samps per note
+    if(sinceLastNote > sampsPerBeat) {
+        for(let row = 0; row < amt; row++) {
+            if(seqGrid[row][curCol]) {
+                playingNotes.push(new CustomWave(44100, wave, 440*Math.pow(2, -4+cur_octave) + cur_difference*row, cur_attack, cur_release));
+                let node = document.getElementById(row.toString()+'@'+curCol.toString());
+                node.classList.toggle('active');
+            }
+        }
+
+        curCol++;
+        if(curCol >= amt) curCol = 0;
+        sinceLastNote -= sampsPerBeat;
+    }
+
+    for(let note in playingNotes) {
+        let res = playingNotes[note].getBuffer(len);
+        for(let i = 0; i < res.length; i++) {
+            outputBuffer[i] += res[i]*.1;
         }
     }
 
-    cur_phase += (len-Math.floor(len/del)*del)/del;
+    for(let i = playingNotes.length-1; i >= 0; i--) {
+        if(playingNotes[i].howMuchLeft() <= 0) playingNotes.splice(i, 1);
+
+    }
+
+    sinceLastNote += outputBuffer.length;
 };
+
+function createSeq() {
+    let seq = document.getElementById('seq');
+    seq.innerHTML = "";
+    seqGrid = new Array(amt).fill(0).map(row => new Array(amt).fill(false));
+    for(let i = 0; i < amt; i++) {
+        let innerseqdiv = document.createElement('div');
+        innerseqdiv.setAttribute('class', 'dotrow');
+        for(let j = 0; j < amt; j++) {
+            let node = document.createElement('div');
+            node.setAttribute('class', 'dot off');
+            node.setAttribute('id', i.toString()+'@'+j.toString());
+            node.setAttribute('row', i.toString());
+            node.setAttribute('col', j.toString());
+            node.onclick = onDotClick;
+            node.addEventListener('webkitAnimationEnd', function(){
+                this.style.webkitAnimationName = '';
+            }, false);
+            innerseqdiv.appendChild(node);
+        }
+        seq.appendChild(innerseqdiv);
+    }
+}
 
 function resetWave(type) {
     if(!type || type=='sin') {
@@ -117,29 +159,16 @@ function getInterpWavePoint(x) {
 }
 
 // event handlers
-function onMIDIDevChange() {
-    let inputs = midi.getInputs();
-    let newInputs = [];
-    inputs.forEach(function(item) {
-        newInputs.push({ name: item.name, value: item });
-    });
-    viewmodel.midiinputs(newInputs);
-}
-
-function onMIDIMessage(event) {
-    let data = event.data;
-    let c = data[0] & 0xF0;
-    if(c == 0x80 ) {
-        console.log('note off: ' + data[1]);
-        cur_notes.splice(cur_notes.indexOf(data[1]), 1);
-        if(cur_notes.length != 0) cur_freq = Math.pow(2, (cur_notes[cur_notes.length-1]-69)/12)*440;
+function onDotClick(e) {
+    e.target.classList.remove('active');
+    if(e.target.classList.contains('on')) {
+        e.target.classList.remove('on');
+        e.target.classList.add('off');
+    } else {
+        e.target.classList.remove('off');
+        e.target.classList.add('on');
     }
-    if(c == 0x90) {
-        console.log('note on: ' + data[1] + ' vel ' + data[2]);
-        cur_freq = Math.pow(2, (data[1]-69)/12)*440;
-        cur_vol = data[2]/127;
-        cur_notes.push(data[1]);
-    }
+    seqGrid[e.target.getAttribute('row')][e.target.getAttribute('col')] = !seqGrid[e.target.getAttribute('row')][e.target.getAttribute('col')];
 }
 
 document.getElementById('wave').onmousedown = function(e) {
@@ -175,8 +204,8 @@ document.getElementById('wave').onmousemove = function(e) {
 document.getElementById('wave').addEventListener('touchmove', function(e) {
     e.preventDefault();
     if(!isMouseDown) return;
-    let x = e.changedTouches[0].pageX - e.target.clientLeft;
-    let y = e.changedTouches[0].pageY- e.target.clientTop;
+    let x = e.changedTouches[0].pageX - e.target.offsetLeft;
+    let y = e.changedTouches[0].pageY- e.target.offsetTop;
     if(last_mousex != -1 && last_mousey != -1) {
         let del = 1 / wave_size * width;
         let amt = Math.floor(Math.abs(last_mousex - x) / del);
@@ -198,14 +227,15 @@ document.getElementById('wave').addEventListener('touchend', function(e) {
     e.preventDefault();
     isMouseDown = false;
 });
-document.getElementById('reset').onclick = document.getElementById('sin').onclick = function(e) { resetWave(); };
+
+document.getElementById('sin').onclick = function(e) { resetWave(); };
 document.getElementById('tri').onclick = function(e) { resetWave('tri'); };
 document.getElementById('saw').onclick = function(e) { resetWave('saw'); };
 document.getElementById('square').onclick = function(e) { resetWave('square'); };
 
 // initialization
 function init() {
-    width = document.body.clientWidth;
+    width = Math.floor(document.body.clientWidth*3/5);
     height = 400;
 
     let canv = document.getElementById('wave');
@@ -218,15 +248,33 @@ function init() {
 
     resetWave();
     drawWave();
-    ko.applyBindings(viewmodel);
+    createSeq();
 
-    viewmodel.selectedInput.subscribe(function(oldVal) {
-        if(oldVal) oldVal.onmidimessage = null;
-    }, null, 'beforeChange');
-    viewmodel.selectedInput.subscribe(function(newVal) {
-        console.log('selected MIDI device: '+newVal.name);
-        newVal.onmidimessage = onMIDIMessage;
-    }, null, 'change');
+    let bpmslider = document.getElementById('bpm');
+    noUiSlider.create(bpmslider, {start: 60, range: {'min': 20, 'max': 240}});
+    bpmslider.noUiSlider.on('update', function(values, handle, unencoded){
+        cur_bpm = unencoded[0];
+    });
+    let attackslider = document.getElementById('attack');
+    noUiSlider.create(attackslider, {start: .25, range: {'min': 0, 'max': 1}});
+    attackslider.noUiSlider.on('update', function(values, handle, unencoded){
+        cur_attack = unencoded[0];
+    });
+    let releaseslider = document.getElementById('release');
+    noUiSlider.create(releaseslider, {start: .25, range: {'min': 0, 'max': 1}});
+    releaseslider.noUiSlider.on('update', function(values, handle, unencoded){
+        cur_release = unencoded[0];
+    });
+    let differenceslider = document.getElementById('difference');
+    noUiSlider.create(differenceslider, {start: 60, range: {'min': 10, 'max': 200}});
+    differenceslider.noUiSlider.on('update', function(values, handle, unencoded){
+        cur_difference = unencoded[0];
+    });
+    let octaveslider = document.getElementById('octave');
+    noUiSlider.create(octaveslider, {start: 4, range: {'min': 2, 'max': 6}});
+    octaveslider.noUiSlider.on('update', function(values, handle, unencoded){
+        cur_octave = unencoded[0];
+    });
 
     process_node.connect(actx.destination);
 }
