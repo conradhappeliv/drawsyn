@@ -10,8 +10,13 @@ let isMouseDown = false;
 let last_mousex = -1;
 let last_mousey = -1;
 let actx = new (window.AudioContext || window.webkitAudioContext)();
-let process_node = actx.createScriptProcessor(256, 0, 1);
-let cur_freq = 440;
+let process_node = actx.createScriptProcessor(1024, 0, 1);
+let compressor = actx.createDynamicsCompressor();
+compressor.threshold.value = -40;
+compressor.knee.value = 40;
+compressor.ratio.value = 20;
+compressor.attack.value = 0;
+compressor.release.value = 0.25;
 let cur_bpm = 120;
 let cur_attack = .25;
 let cur_release = .25;
@@ -147,19 +152,9 @@ function interp(x, y0, y1) {
     return y0 + x*(y1-y0);
 }
 
-function getInterpWavePoint(x) {
-    x = x%1;
-    if(x == 0 || x == 1) { // will this ever happen?
-        return wave[x];
-    } else {
-        let y0 = wave[Math.floor(x*wave_size)];
-        let y1 = Math.ceil(x*wave_size) == wave_size ? 0 : wave[Math.ceil(x*wave_size)];
-        return interp(x, y0, y1);
-    }
-}
-
 // event handlers
 function onDotClick(e) {
+
     e.target.classList.remove('active');
     if(e.target.classList.contains('on')) {
         e.target.classList.remove('on');
@@ -261,7 +256,7 @@ function init() {
         cur_attack = unencoded[0];
     });
     let releaseslider = document.getElementById('release');
-    noUiSlider.create(releaseslider, {start: .25, range: {'min': 0, 'max': 1}});
+    noUiSlider.create(releaseslider, {start: .25, range: {'min': .01, 'max': 1}});
     releaseslider.noUiSlider.on('update', function(values, handle, unencoded){
         cur_release = unencoded[0];
     });
@@ -276,6 +271,7 @@ function init() {
         cur_octave = unencoded[0];
     });
 
-    process_node.connect(actx.destination);
+    process_node.connect(compressor);
+    compressor.connect(actx.destination);
 }
 init();
