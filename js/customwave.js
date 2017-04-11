@@ -14,18 +14,16 @@ function getInterpWavePoint(wave, x) {
     }
 }
 
-export default class {
+class CustomWave {
     constructor(fs, structure, freq, attack, release) { // attack and release from 0 to 1
         this.fs = fs;
         this.structure = structure;
-        this.freq = freq;
         this.attack = attack;
         this.release = release;
 
         this.del = fs/freq;
         this.curLoc = 0;
-        this.curDel = 0;
-        let maxAtkRelTime = 1; // seconds
+        let maxAtkRelTime = 1;
         this.attackTime = this.attack*maxAtkRelTime*this.fs;
         this.releaseTime = this.release*maxAtkRelTime*this.fs;
         this.waveLength = this.attackTime + this.releaseTime;
@@ -43,8 +41,9 @@ export default class {
             }
         }
         if(this.curLoc >= this.attackTime) {
-            let diff = (this.attackTime+this.releaseTime)-this.curLoc;
-            for(; i < Math.min(howMuch, diff); i++) {
+            let diff = this.waveLength-this.curLoc;
+            let howMuchLeft = Math.min(howMuch-res.length, diff)+i;
+            for(; i < howMuchLeft; i++) {
                 res[i] = (1-(this.curLoc-this.attackTime)/this.releaseTime)*getInterpWavePoint(this.structure, this.curLoc/this.del);
                 this.curLoc++;
             }
@@ -52,7 +51,7 @@ export default class {
         return res;
     }
     howMuchLeft() {
-        return this.waveLength.length-this.curLoc;
+        return this.waveLength-this.curLoc;
     }
 }
 

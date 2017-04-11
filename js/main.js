@@ -1,5 +1,3 @@
-import CustomWave from 'js/customwave.js'
-
 // global vars (sorry)
 let wave_size;
 let width;
@@ -10,7 +8,7 @@ let isMouseDown = false;
 let last_mousex = -1;
 let last_mousey = -1;
 let actx = new (window.AudioContext || window.webkitAudioContext)();
-let process_node = actx.createScriptProcessor(1024, 0, 1);
+let process_node = actx.createScriptProcessor(/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent) ? 4096 : 1024, 0, 1);
 let compressor = actx.createDynamicsCompressor();
 compressor.threshold.value = -40;
 compressor.knee.value = 40;
@@ -35,27 +33,7 @@ process_node.onaudioprocess = function(e) {
         outputBuffer[i] = 0;
     }
 
-    let fs = 44100;
-    let sampsPerBeat = fs/(cur_bpm/16); // samps per note
-    let lastCol = curCol == 0 ? amt - 1 : curCol - 1;
-    if(sinceLastNote > sampsPerBeat) {
-        for(let row = 0; row < amt; row++) {
-            if(seqGrid[row][curCol]) {
-                playingNotes.push(new CustomWave(44100, wave, 440*Math.pow(2, -4+cur_octave) + cur_difference*row, cur_attack, cur_release));
-                let node = document.getElementById(row.toString()+'@'+curCol.toString());
-                node.classList.add('active');
-            }
-            if(seqGrid[row][lastCol]) {
-                let node = document.getElementById(row.toString()+'@'+lastCol.toString());
-                node.classList.remove('active');
-            }
-        }
-
-        curCol++;
-        if(curCol >= amt) curCol = 0;
-        sinceLastNote -= sampsPerBeat;
-    }
-
+    // get buffer from notes that were already playing
     for(let note in playingNotes) {
         let res = playingNotes[note].getBuffer(len);
         for(let i = 0; i < res.length; i++) {
@@ -63,12 +41,46 @@ process_node.onaudioprocess = function(e) {
         }
     }
 
-    for(let i = playingNotes.length-1; i >= 0; i--) {
-        if(playingNotes[i].howMuchLeft() <= 0) playingNotes.splice(i, 1);
+    let fs = 44100;
+    let sampsPerBeat = fs/(cur_bpm/16); // samps per note
+    let lastCol = curCol == 0 ? amt - 1 : curCol - 1;
+    for(let i = 0; i < len; i++) {
+        if(sinceLastNote > sampsPerBeat) {
+            let oldPlayingNotesLen = playingNotes.length;
+            for(let row = 0; row < amt; row++) {
+                if(seqGrid[row][curCol]) {
+                    let newNote = new CustomWave(44100, wave, 440*Math.pow(2, -4+cur_octave) + cur_difference*row, cur_attack, cur_release);
+                    playingNotes.push(newNote);
+                    let node = document.getElementById(row.toString()+'@'+curCol.toString());
+                    node.classList.add('active');
+                }
+                if(seqGrid[row][lastCol]) {
+                    let node = document.getElementById(row.toString()+'@'+lastCol.toString());
+                    node.classList.remove('active');
+                    //debugger;
+                }
+            }
 
+            for(let j = oldPlayingNotesLen; j < playingNotes.length; j++) {
+                let res = playingNotes[j].getBuffer(len-i);
+                for(let k = 0; k < res.length; k++) {
+                    outputBuffer[k+i] += res[k]*.1;
+                }
+            }
+
+            curCol++;
+            if(curCol >= amt) curCol = 0;
+            lastCol = curCol == 0 ? amt - 1 : curCol - 1;
+            sinceLastNote = 0;
+        }
+        sinceLastNote++;
     }
 
-    sinceLastNote += outputBuffer.length;
+    for(let i = playingNotes.length-1; i >= 0; i--) {
+        if(playingNotes[i].howMuchLeft() <= 0) {
+            playingNotes.splice(i, 1);
+        }
+    }
 };
 
 function createSeq() {
