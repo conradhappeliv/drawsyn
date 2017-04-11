@@ -37,12 +37,17 @@ process_node.onaudioprocess = function(e) {
 
     let fs = 44100;
     let sampsPerBeat = fs/(cur_bpm/16); // samps per note
+    let lastCol = curCol == 0 ? amt - 1 : curCol - 1;
     if(sinceLastNote > sampsPerBeat) {
         for(let row = 0; row < amt; row++) {
             if(seqGrid[row][curCol]) {
                 playingNotes.push(new CustomWave(44100, wave, 440*Math.pow(2, -4+cur_octave) + cur_difference*row, cur_attack, cur_release));
                 let node = document.getElementById(row.toString()+'@'+curCol.toString());
-                node.classList.toggle('active');
+                node.classList.add('active');
+            }
+            if(seqGrid[row][lastCol]) {
+                let node = document.getElementById(row.toString()+'@'+lastCol.toString());
+                node.classList.remove('active');
             }
         }
 

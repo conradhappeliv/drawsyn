@@ -7,8 +7,9 @@ function getInterpWavePoint(wave, x) {
     if(x == 0) { // will this ever happen?
         return wave[x];
     } else {
-        let y0 = wave[Math.floor(x*wave.length)];
-        let y1 = Math.ceil(x*wave.length) == wave.length ? 0 : wave[Math.ceil(x*wave.length)];
+        let ind = Math.floor(x*wave.length);
+        let y0 = wave[ind];
+        let y1 = ind == wave.length-1 ? 0 : wave[ind+1];
         return interp(x, y0, y1);
     }
 }
