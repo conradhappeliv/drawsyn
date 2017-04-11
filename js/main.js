@@ -74,23 +74,31 @@ process_node.onaudioprocess = function(e) {
 function createSeq() {
     let seq = document.getElementById('seq');
     seq.innerHTML = "";
-    seqGrid = new Array(amt).fill(0).map(row => new Array(amt).fill(false));
     for(let i = 0; i < amt; i++) {
         let innerseqdiv = document.createElement('div');
         innerseqdiv.setAttribute('class', 'dotrow');
         for(let j = 0; j < amt; j++) {
             let node = document.createElement('div');
-            node.setAttribute('class', 'dot off');
+            node.classList.add('dot');
+            node.classList.add(seqGrid[i][j] ? 'on' : 'off');
             node.setAttribute('id', i.toString()+'@'+j.toString());
             node.setAttribute('row', i.toString());
             node.setAttribute('col', j.toString());
             node.onclick = onDotClick;
-            node.addEventListener('webkitAnimationEnd', function(){
-                this.style.webkitAnimationName = '';
-            }, false);
             innerseqdiv.appendChild(node);
         }
         seq.appendChild(innerseqdiv);
+    }
+}
+
+function resizeSeq() {
+    for(let i = 0; i < amt; i++) {
+        for(let j = 0; j < amt; j++) {
+            let node = document.getElementById(i.toString()+'@'+j.toString());
+            let width = node.offsetWidth;
+            console.log(width);
+            node.style.setProperty('height', width.toString()+'px');
+        }
     }
 }
 
@@ -133,7 +141,7 @@ function drawWave() {
     if (canv.getContext) {
         let ctx = canv.getContext('2d');
         ctx.clearRect(0,0,width, height);
-
+        ctx.fillStyle = 'white';
         for(let i = 0; i < wave_size; i++) {
             ctx.fillRect(i/wave_size*width, height/2, 1/wave_size*width, height/2*wave[i]);
         }
@@ -157,9 +165,20 @@ function interp(x, y0, y1) {
     return y0 + x*(y1-y0);
 }
 
+function getInterpWavePoint(wave, x) {
+    x = x%1;
+    if(x == 0) { // will this ever happen?
+        return wave[x];
+    } else {
+        let ind = Math.floor(x*wave.length);
+        let y0 = wave[ind];
+        let y1 = ind == wave.length-1 ? 0 : wave[ind+1];
+        return interp(x, y0, y1);
+    }
+}
+
 // event handlers
 function onDotClick(e) {
-
     e.target.classList.remove('active');
     if(e.target.classList.contains('on')) {
         e.target.classList.remove('on');
@@ -234,21 +253,40 @@ document.getElementById('saw').onclick = function(e) { resetWave('saw'); };
 document.getElementById('square').onclick = function(e) { resetWave('square'); };
 
 // initialization
-function init() {
-    width = Math.floor(document.body.clientWidth*3/5);
+function createWaveCanvas(firstTime) {
+    width = Math.floor(document.body.clientWidth*(document.body.clientWidth < 1024 ? 1 : 3/5));
     height = 400;
-
     let canv = document.getElementById('wave');
     canv.width = width;
     canv.height = height;
     wave_size = width;
 
-    wave = new Float32Array(Array.apply(null, Array(wave_size)).map(function (_, i) {return i;}));
-    delta = 1/wave_size*width;
+    if(firstTime) {
+        wave = new Float32Array(Array.apply(null, Array(wave_size)).map(function (_, i) {return i;}));
+        resetWave();
 
-    resetWave();
+        createSeq();
+    } else {
+        let newWave = new Float32Array(Array.apply(null, Array(wave_size)).map(function (_, i) {return i;}));
+        for(let i = 0; i < newWave.length; i++) {
+            newWave[i] = getInterpWavePoint(wave, i/newWave.length);
+        }
+        wave = newWave;
+
+
+    }
+    delta = 1/wave_size*width;
     drawWave();
-    createSeq();
+
+    resizeSeq();
+}
+
+function init() {
+    seqGrid = new Array(amt).fill(0).map(row => new Array(amt).fill(false));
+
+
+    createWaveCanvas(true);
+    window.addEventListener('resize', function(){ createWaveCanvas(false) });
 
     let bpmslider = document.getElementById('bpm');
     noUiSlider.create(bpmslider, {start: 60, range: {'min': 20, 'max': 240}});
