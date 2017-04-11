@@ -96,7 +96,6 @@ function resizeSeq() {
         for(let j = 0; j < amt; j++) {
             let node = document.getElementById(i.toString()+'@'+j.toString());
             let width = node.offsetWidth;
-            console.log(width);
             node.style.setProperty('height', width.toString()+'px');
         }
     }
@@ -255,7 +254,7 @@ document.getElementById('square').onclick = function(e) { resetWave('square'); }
 // initialization
 function createWaveCanvas(firstTime) {
     width = Math.floor(document.body.clientWidth*(document.body.clientWidth < 1024 ? 1 : 3/5));
-    height = 400;
+    height = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight)/2 || 360;
     let canv = document.getElementById('wave');
     canv.width = width;
     canv.height = height;
@@ -264,7 +263,6 @@ function createWaveCanvas(firstTime) {
     if(firstTime) {
         wave = new Float32Array(Array.apply(null, Array(wave_size)).map(function (_, i) {return i;}));
         resetWave();
-
         createSeq();
     } else {
         let newWave = new Float32Array(Array.apply(null, Array(wave_size)).map(function (_, i) {return i;}));
@@ -272,12 +270,9 @@ function createWaveCanvas(firstTime) {
             newWave[i] = getInterpWavePoint(wave, i/newWave.length);
         }
         wave = newWave;
-
-
     }
     delta = 1/wave_size*width;
     drawWave();
-
     resizeSeq();
 }
 
@@ -289,12 +284,12 @@ function init() {
     window.addEventListener('resize', function(){ createWaveCanvas(false) });
 
     let bpmslider = document.getElementById('bpm');
-    noUiSlider.create(bpmslider, {start: 60, range: {'min': 20, 'max': 240}});
+    noUiSlider.create(bpmslider, {start: 100, range: {'min': 20, 'max': 240}});
     bpmslider.noUiSlider.on('update', function(values, handle, unencoded){
         cur_bpm = unencoded[0];
     });
     let attackslider = document.getElementById('attack');
-    noUiSlider.create(attackslider, {start: .25, range: {'min': 0, 'max': 1}});
+    noUiSlider.create(attackslider, {start: .05, range: {'min': 0, 'max': 1}});
     attackslider.noUiSlider.on('update', function(values, handle, unencoded){
         cur_attack = unencoded[0];
     });
@@ -316,5 +311,13 @@ function init() {
 
     process_node.connect(compressor);
     compressor.connect(actx.destination);
+
+    document.getElementById('container').style.opacity = 1;
+
+    // intro
+    if(readCookie("introdisplayed") == null) {
+        introJs().start();
+        createCookie("introdisplayed", + new Date(), 30);
+    }
 }
 init();

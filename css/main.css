@@ -31,6 +31,10 @@ canvas {
     cursor: crosshair;
 }
 
+.introjs-tooltiptext {
+    color: black;
+}
+
 .controllabel {
     text-align: right;
     margin-right:30px;
@@ -43,8 +47,8 @@ canvas {
 }
 
 .dot {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border-radius: 100%;
     cursor: pointer;
     margin: 2px;
@@ -88,29 +92,51 @@ canvas {
     top: 5px;
 }
 
+#container {
+    opacity: 0;
+    transition: opacity 1s;
+}
+
 #wave {
     display:block;
 }
 
 #seq {
     display: flex;
-    margin: 20px auto;
+    margin: 0 auto 20px auto;
     flex-direction: column;
 }
 
-#footer h1, #footer h4 {
+#header h1, #header h4 {
     margin: 0;
     display:inline-block;
     font-family: 'Permanent Marker', cursive;
     color:white;
 }
 
-#footer h1 {
+#header h1 {
     font-size: 3em;
 }
 
-#footertext {
+#headertext {
     text-align: center;
     margin: 0 auto;
     display: block;
+}
+
+#helpbutton {
+    margin-top: -10px;
+    margin-bottom: 10px;
+    text-align:center;
+    display: block;
+    font-family: 'Permanent Marker', cursive;
+    color:white;
+    text-decoration: none;
+    letter-spacing: 2px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+#controls {
+    margin-bottom:20px;
 }
