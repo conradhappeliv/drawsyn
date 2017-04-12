@@ -25,6 +25,7 @@ let seqGrid;
 let curCol = 0;
 let playingNotes = [];
 let sinceLastNote = 0;
+let intro;
 
 process_node.onaudioprocess = function(e) {
     let outputBuffer = e.outputBuffer.getChannelData(0);
@@ -327,8 +328,12 @@ function init() {
     document.getElementById('container').style.opacity = 1;
 
     // intro
+    intro = introJs();
+    intro.setOption("showStepNumbers", false);
+    intro.setOption("overlayOpacity", .8);
+    intro.setOption("hintPosition", "top");
     if(readCookie("introdisplayed") == null) {
-        introJs().start();
+        intro.start();
         createCookie("introdisplayed", + new Date(), 30);
     }
 }

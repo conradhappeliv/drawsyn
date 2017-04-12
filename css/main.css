@@ -38,6 +38,8 @@ canvas {
 .controllabel {
     text-align: right;
     margin-right:30px;
+    text-decoration: underline;
+    text-decoration-color: #455d8c;
 }
 
 .dotrow {
@@ -92,6 +94,10 @@ canvas {
     top: 5px;
 }
 
+.introjs-showElement {
+    background-color: #333333;
+}
+
 #container {
     opacity: 0;
     transition: opacity 1s;
@@ -139,4 +145,12 @@ canvas {
 
 #controls {
     margin-bottom:20px;
+}
+
+#tooltip {
+    position:absolute;
+    z-index: 999999;
+    background: #135eaf;
+    color:#ffffff;
+    padding:5px;
 }

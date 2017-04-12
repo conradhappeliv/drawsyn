@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DrawSyn</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 
     <link rel="stylesheet" href="https://unpkg.com/purecss@0.6.2/build/pure-min.css" integrity="sha384-UQiGfs9ICog+LwheBSRCt1o5cbyKIHbwjWscjemyBMT9YCUMZffs6UqUTd0hObXD" crossorigin="anonymous">
     <link rel="stylesheet" href="https://unpkg.com/purecss@0.6.2/build/grids-responsive-min.css">
@@ -28,15 +28,15 @@
                             </div>
                         </div>
                         <div class="pure-u-1-1">
-                            <a onclick="introJs().start()" id="helpbutton">Help</a>
+                            <a onclick="intro.start()" id="helpbutton">Help</a>
                         </div>
                     </div>
                 </div>
                 <div class="pure-u-1">
-                    <canvas data-intro="Draw your custom waveform here to change the timbre of your sound. (Hint: smoother lines = smoother sounds)" id="wave"></canvas>
+                    <canvas data-position="left" data-intro="Draw your custom waveform here to change the timbre of your sound. (Hint: smoother lines = smoother sounds)" id="wave"></canvas>
                 </div>
                 <div class="pure-u-1">
-                    <div data-intro="Reset the waveform to a predefined state." class="pure-g">
+                    <div data-position="left" data-intro="Reset the waveform to a predefined state." class="pure-g">
                         <button id="sin" class="pure-u-1-4">Sin</button>
                         <button id="tri" class="pure-u-1-4">Triangle</button>
                         <button id="saw" class="pure-u-1-4">Saw</button>
@@ -44,15 +44,15 @@
                     </div>
                 </div>
                 <div class="pure-u-1">
-                    <div data-intro="Define a repeating pattern by tapping any number of dots." data-step="1" id="seq"></div>
+                    <div data-position="left" data-intro="Define a repeating pattern by tapping any number of dots." data-step="1" id="seq"></div>
                 </div>
                 <div class="pure-u-1">
-                    <div data-intro="Change length/timing/scale of notes." class="pure-g" id="controls">
-                        <div class="pure-u-1-3"><p class="controllabel">BPM</p></div><div class="pure-u-2-3"><div class="sliders" id="bpm"></div></div>
-                        <div class="pure-u-1-3"><p class="controllabel">Attack</p></div><div class="pure-u-2-3"><div class="sliders" id="attack"></div></div>
-                        <div class="pure-u-1-3"><p class="controllabel">Release</p></div><div class="pure-u-2-3"><div class="sliders" id="release"></div></div>
-                        <div class="pure-u-1-3"><p class="controllabel">Difference</p></div><div class="pure-u-2-3"><div class="sliders" id="difference"></div></div>
-                        <div class="pure-u-1-3"><p class="controllabel">Octave</p></div><div class="pure-u-2-3"><div class="sliders" id="octave"></div></div>
+                    <div data-position="left" data-intro="Change length/timing/scale of notes." class="pure-g" id="controls">
+                        <div class="pure-u-1-3"><p data-tooltip title="How fast the sequencer plays" class="controllabel">BPM</p></div><div class="pure-u-2-3"><div class="sliders" id="bpm"></div></div>
+                        <div class="pure-u-1-3"><p data-tooltip title='"Fade-in" length' class="controllabel">Attack</p></div><div class="pure-u-2-3"><div class="sliders" id="attack"></div></div>
+                        <div class="pure-u-1-3"><p data-tooltip title='"Fade-out" length' class="controllabel">Release</p></div><div class="pure-u-2-3"><div class="sliders" id="release"></div></div>
+                        <div class="pure-u-1-3"><p data-tooltip title="Fixed difference in frequency between each note" class="controllabel">Difference</p></div><div class="pure-u-2-3"><div class="sliders" id="difference"></div></div>
+                        <div class="pure-u-1-3"><p data-tooltip title="How high or low the notes sound" class="controllabel">Octave</p></div><div class="pure-u-2-3"><div class="sliders" id="octave"></div></div>
                     </div>
                 </div>
 
@@ -67,6 +67,7 @@
     <!--<script type="text/javascript" src="https://google.github.io/traceur-compiler/src/bootstrap.js"></script>-->
     <script type="text/javascript" src="js/nouislider.min.js"></script>
     <script type="text/javascript" src="js/intro.min.js"></script>
+    <script type="text/javascript" src="js/Tooltip.js"></script>
     <script type="text/javascript" src="js/cookies.js"></script>
     <script type="text/javascript" src="js/customwave.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
